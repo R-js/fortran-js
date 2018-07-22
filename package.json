@@ -1,0 +1,56 @@
+{
+  "name": "fortran",
+  "version": "1.0.0",
+  "description": "DSL for fortran f77  implemented in javascript/typescript",
+  "main": "index.js",
+  "scripts": {
+    "install": "echo install",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "post-test": "echo posttest",
+    "postinstall": "echo postinstall",
+    "postrestart": "echo postrestart",
+    "postshrinkwrap": "echo postshrinkwrap",
+    "poststart": "echo poststart",
+    "poststop": "echo poststop",
+    "postuninstall": "echo postuninstall",
+    "postversion": "echo postversion",
+    "pre-test": "echo prestest",
+    "preinstall": "echo preinstall",
+    "prepare": "echo 'prepare'",
+    "prepublishOnly": "echo prepublishOnly",
+    "prerestart": "echo prerestart",
+    "preshrinkwrap": "echo preshrinkwrap",
+    "prestart": "echo prestart",
+    "prestop": "echo prestop",
+    "preuninstall": "echo preuninstall",
+    "preversion": "echo preversion",
+    "publish": "echo publish",
+    "restart": "echo restart",
+    "shrinkwrap": "echo shrinkwrap",
+    "start": "echo start",
+    "stop": "echo stop",
+    "test": "echo test",
+    "uninstall": "echo uninstall",
+    "version": "echo version"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacobbogers/fortran-js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jacobbogers/fortran-js/issues"
+  },
+  "homepage": "https://github.com/jacobbogers/fortran-js#readme",
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^17.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-react": "^7.10.0",
+    "webpack-toolbox": "^1.0.9"
+  },
+  "dependencies": {}
+}
