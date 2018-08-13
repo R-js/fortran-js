@@ -38,7 +38,7 @@
     "type": "git",
     "url": "git+https://github.com/jacobbogers/fortran-js.git"
   },
-  "author": "",
+  "author": "Jacob Bogers <info@mail.jacob-bogers.com",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/jacobbogers/fortran-js/issues"
