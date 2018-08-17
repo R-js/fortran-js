@@ -28,11 +28,18 @@ function cr(c) {
 	return '\r' === c
 }
 
+function operators(c) {
+	return '<>)(*+-/.^'.indexOf(c) >= 0 //
+}
+
+
+
 module.exports = {
 	letter,
 	LETTER,
 	digits,
 	alphaNum,
+	operators,
 	ws,
 	lf,
 	cr

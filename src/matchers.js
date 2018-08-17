@@ -110,6 +110,7 @@ const classMatcher = (_class, pattern = 1) => {
 				return { s: 'm', count: oc, b: ob, e: oe }
 			}
 		default:
+			throw new Error('not a valid instruction set')
 		}
 
 	}
