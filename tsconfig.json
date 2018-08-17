@@ -7,7 +7,7 @@
         "newLine": "LF",
         "noEmit": false,
         "listEmittedFiles": true,
-        "declarationDir": "dist",
+        "declarationDir": "./",
         "declaration": true,
         "removeComments": true,
         "allowUnreachableCode": true,
@@ -15,6 +15,7 @@
         "experimentalDecorators": true,
         "jsx": "react",
         "lib": [
+            "es2015",
             "es6",
             "dom",
             "esnext.asynciterable"

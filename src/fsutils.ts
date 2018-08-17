@@ -1,11 +1,11 @@
-import { readFile, readdir, Stats, lstat } from 'fs'
+import { lstat, readdir, readFile, Stats } from 'fs'
 
 export interface EStats extends Stats {
     error: NodeJS.ErrnoException
 }
 
 export function promisify<T>(fn: Function): (...args) => Promise<T> {
-    return function (...args) {
+    return function(...args) {
         return new Promise((resolve, reject) => {
             fn(...args, (err, stuff: T) => {
                 if (err) {
@@ -18,7 +18,7 @@ export function promisify<T>(fn: Function): (...args) => Promise<T> {
     }
 }
 
-export const load = promisify(readFile)
+export const load = promisify<string>(readFile)
 export const lsDir = promisify<string[]>(readdir)
 export const fstat = promisify<EStats>(lstat)
 
@@ -26,7 +26,7 @@ export async function statEntries(files: string[]): Promise<Map<string, EStats>>
 
     const sorted = (files || []).sort().filter(f => String.prototype.trim.call(f || ''))
     const result = new Map<string, EStats>()
-    return new Promise<Map<string, EStats>>(async function (resolve) {
+    return new Promise<Map<string, EStats>>(async function(resolve) {
         //1. fire them off in parallel
         const allPromises = sorted.map(file => fstat(file))
         //2. collect them in serial

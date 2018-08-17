@@ -2,6 +2,7 @@
 
 export enum IModuleEnums {
   'init',
+  'loaded',
   'dependencies-resolved',
   'lexed',
   'parsed'
@@ -17,13 +18,17 @@ export enum IFortranTypes {
 }
 
 export interface IModule {
-  operations: IModuleEnums[]
+  errors: Error[];
+  name: string;
+  operations: Set<IModuleEnums>
   size?: number;
   raw?: string;
   lines?: string[];
-  inferFiletype(): void;
-  load(): void;
-  resolveDependencies(): void;  
+  ext(): string | TypeError;
+  load(): Promise<string>;
+  base(): string;
+  dir(): string;
+  resolveDependencies(): Promise<IModule[]>;  
 }
 
 /*

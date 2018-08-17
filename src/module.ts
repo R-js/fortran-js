@@ -1,22 +1,48 @@
 'use strict'
 
-//import { load, lsDir, fstat } from './fsutils';
+import { basename, dirname, extname } from 'path';
 
-import { IModule, IModuleEnums } from './IModule';
+import { load } from './fsutils'
+import { IFortranTypes, IModule, IModuleEnums } from './IModule';
 
 export function createModule(fullPath: string): IModule  {
     
     return {
-        operations: [IModuleEnums.init],
+        errors: [],
+        name:fullPath,
+        operations: new Set<IModuleEnums>(),
         size: -1,
         raw: '',
         lines: [],
-        inferFiletype(){
+        ext(){
+           const found = Object.keys(IFortranTypes).find(f => f === extname(fullPath)) 
+           if (!found){
+               return new TypeError(`not a valid fortran extentiontype: ${basename(fullPath)}`)
+           }
+           return found       
         },
-        load() {
+        base(){
+            return basename(this.name)
         },
-        resolveDependencies(){
-
+        dir(){
+            return dirname(this.name) 
+        },
+        async load() {
+            let text: string
+            try {
+             text = await load(fullPath)
+             this.raw = text
+             this.operations.add(IModuleEnums.loaded)
+            }
+            catch (e){
+                this.errors.push(e)
+                throw e
+            }
+            return text
+        },
+        async resolveDependencies() {
+            throw new Error('not implemented')
         }
     }
 }
+
