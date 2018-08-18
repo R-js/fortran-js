@@ -1,47 +1,58 @@
 'use strict'
 
 import { basename, dirname, extname } from 'path';
+import debug from 'debug'
 
 import { load } from './fsutils'
 import { IFortranTypes, IModule, IModuleEnums } from './IModule';
+import { listeners } from 'cluster';
 
-export function createModule(fullPath: string): IModule  {
-    
+const printer = debug('module')
+
+
+export function createModule(fullPath: string): IModule {
+
     return {
         errors: [],
-        name:fullPath,
+        name: fullPath,
         operations: new Set<IModuleEnums>(),
         size: -1,
         raw: '',
         lines: [],
-        ext(){
-           const found = Object.keys(IFortranTypes).find(f => f === extname(fullPath)) 
-           if (!found){
-               return new TypeError(`not a valid fortran extentiontype: ${basename(fullPath)}`)
-           }
-           return found       
+        ext() {
+            const found = Object.keys(IFortranTypes).find(f => f === extname(fullPath))
+            if (!found) {
+                printer(`extention of ${this.base(fullPath)} does not have fortran extention`)
+                return new TypeError(`not a valid fortran extentiontype: ${basename(fullPath)}`)
+            }
+            return found
         },
-        base(){
+        base() {
             return basename(this.name)
         },
-        dir(){
-            return dirname(this.name) 
+        dir() {
+            return dirname(this.name)
         },
-        async load() {
-            let text: string
-            try {
-             text = await load(fullPath)
-             this.raw = text
-             this.operations.add(IModuleEnums.loaded)
-            }
-            catch (e){
-                this.errors.push(e)
-                throw e
-            }
-            return text
+        load() {
+            return load(fullPath, 'utf8')
+                .then(raw => {
+                    if (typeof raw === 'string') {
+                        this.size = raw.length;
+                        this.lines = raw.split(/\n/)
+                        // correct for last empty line because of split side effect
+                        if (!!this.lines[this.lines.length - 1]) this.lines.pop()
+                        return this.raw = raw
+                    }
+                    throw new Error(`Read content of file ${this.base()} is NOT a string`)
+
+                })
+                .catch(err => {
+                    this.operations.add(IModuleEnums.loaded)
+                    return Promise.reject(err)
+                })
         },
-        async resolveDependencies() {
-            throw new Error('not implemented')
+        resolveDependencies() {
+            return 1 as any//Promise.reject(Error('not implemented')
         }
     }
 }

@@ -1,8 +1,8 @@
 'use strict'
 
-const { _, cc, isString } = require('./classes')
+import { _, cc, isString } from  './helpers'
 
-const classMatcher = (_class, pattern = 1) => {
+export const classMatcher = (_class, pattern: string |number = 1) => {
 	let start
 	let endI
 	let count
@@ -11,8 +11,8 @@ const classMatcher = (_class, pattern = 1) => {
 	const isStr = typeof pattern === 'string'
 	const isMin = isStr && pattern[0] === '<'
 	const isMax = isStr && pattern[0] === '>'
-	const max = isMax && parseInt(pattern.slice(1))
-	const min = isMin && parseInt(pattern.slice(1))
+	const max = isMax && parseInt((<string>pattern).slice(1))
+	const min = isMin && parseInt((<string>pattern).slice(1))
 	let state = 'in' // init, 'te' = tentative ,'m' = matched, 'em' = extended matching
 	function setState(t, b, e, c) {
 		const oc = count
@@ -129,7 +129,7 @@ function literalMatcher(literal, noCase) {
 	if (!isStr) { throw new Error(`literal [${literal}] not a string`) }
 	if (len === 0) { throw new Error('literal is a string of length 0') }
 
-	function setState(t, b, e, c) {
+	function setState(t?, b?, e?, c?) {
 		const oi = idx
 		const ob = start
 		const oe = endI

@@ -1,33 +1,13 @@
 {
     "compilerOptions": {
-        "strictPropertyInitialization": false,
-        "noImplicitAny": false,
-        "noLib": false,
-        "noUnusedLocals": true,
-        "newLine": "LF",
-        "noEmit": false,
-        "listEmittedFiles": true,
-        "declarationDir": "./",
-        "declaration": true,
-        "removeComments": true,
-        "allowUnreachableCode": true,
-        "baseUrl": "./",
-        "experimentalDecorators": true,
-        "jsx": "react",
-        "lib": [
-            "es2015",
-            "es6",
-            "dom",
-            "esnext.asynciterable"
-        ],
-        "module": "commonjs",
-        "target": "es2016",
-        "moduleResolution": "node",
         "outDir": "dist",
-        "rootDir": "",
+        "target": "esnext",
         "sourceMap": true,
-        "strict": true
-    },
+        "module": "commonjs",
+        "allowSyntheticDefaultImports": true
+      },
+
+    
     "exclude": [
         "node_modules"
     ],

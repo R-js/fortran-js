@@ -5,8 +5,8 @@ export interface EStats extends Stats {
 }
 
 export function promisify<T>(fn: Function): (...args) => Promise<T> {
-    return function(...args) {
-        return new Promise((resolve, reject) => {
+    return function wrapped(...args) {
+        return new Promise<T>((resolve, reject) => {
             fn(...args, (err, stuff: T) => {
                 if (err) {
                     reject(err)
