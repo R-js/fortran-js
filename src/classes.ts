@@ -5,11 +5,11 @@ export function letter(c) {
 }
 
 export function LETTER(c) {
-	return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(c)
+	return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(c)
 }
 
 export function digits(c) {
-	return '0123456789'.indexOf(c) >= 0
+	return '0123456789'.includes(c)
 }
 
 export function alphaNum(c) {
@@ -17,7 +17,7 @@ export function alphaNum(c) {
 }
 
 export function ws(c) {
-	return '\t '.indexOf(c) >= 0
+	return '\t '.includes(c)
 }
 
 export function lf(c) {

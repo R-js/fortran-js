@@ -1,8 +1,13 @@
 'use strict'
 
-import { _, cc, isString } from  './helpers'
+import { _, cc, isString } from './helpers'
 
-export const classMatcher = (_class, pattern: string |number = 1) => {
+type oldState = { oc: number, ob: number, oe: number, os: 'em' | 'm' | 'te' | 'in' }
+export type IMatcherState = { s: 'em' | 'm' | 'te' | 'in', b: number, e: number, count: number }
+export type IMatcher = (c: string, i: number) => IMatcherState
+
+
+export const createClassMatcher = (_class, pattern: string | number = 1) => {
 	let start
 	let endI
 	let count
@@ -13,8 +18,8 @@ export const classMatcher = (_class, pattern: string |number = 1) => {
 	const isMax = isStr && pattern[0] === '>'
 	const max = isMax && parseInt((<string>pattern).slice(1))
 	const min = isMin && parseInt((<string>pattern).slice(1))
-	let state = 'in' // init, 'te' = tentative ,'m' = matched, 'em' = extended matching
-	function setState(t, b, e, c) {
+	let state: 'em' | 'm' | 'te' | 'in' = 'in' // init, 'te' = tentative ,'m' = matched, 'em' = extended matching
+	function setState(t, b, e, c): oldState {
 		const oc = count
 		const ob = start
 		const oe = endI
@@ -26,7 +31,7 @@ export const classMatcher = (_class, pattern: string |number = 1) => {
 		return { oc, ob, oe, os }
 	}
 
-	return function check(c, i) {
+	return function check(c, i): Partial<IMatcherState> {
 		// if not found 
 		//    -> prev state 'em'? 
 		//          -> emit matched value
@@ -77,46 +82,46 @@ export const classMatcher = (_class, pattern: string |number = 1) => {
 			}
 		}
 		switch (state) {
-		case 'em':
-			count++
-			endI = i
-			if (min && count >= min) {
-				const { oc, ob, oe } = setState('in', i, i, 0)
-				return { s: 'm', b: ob, e: oe, count: oc, }
-			}
-			return { s: 'em', count, b: start, e: endI }
-		case 'in':
-			setState('te', i, i, 0)
-		case 'te':
-			count++
-			endI = i
-			if (min) {
-				if (count < min) {
-					state = 'em'
-					return { s: 'em', count, b: start, e: endI }
+			case 'em':
+				count++
+				endI = i
+				if (min && count >= min) {
+					const { oc, ob, oe } = setState('in', i, i, 0)
+					return { s: 'm', b: ob, e: oe, count: oc, }
 				}
-				const { oc, ob, oe } = setState('in', i, i, 0)
-				return { s: 'm', b: ob, e: oe, count: oc }
-			}
-			if (max) {
-				if (count >= max) {
-					const { oc, ob, oe } = setState('em', _, _, _)
-					return { s: 'em', b: ob, e: oe, count: oc }
+				return { s: 'em', count, b: start, e: endI }
+			case 'in':
+				setState('te', i, i, 0)
+			case 'te':
+				count++
+				endI = i
+				if (min) {
+					if (count < min) {
+						state = 'em'
+						return { s: 'em', count, b: start, e: endI }
+					}
+					const { oc, ob, oe } = setState('in', i, i, 0)
+					return { s: 'm', b: ob, e: oe, count: oc }
 				}
-				return { s: 'te', count }
-			}
-			if (count === pattern) {
-				const { oc, ob, oe } = setState('in', i, i, 0)
-				return { s: 'm', count: oc, b: ob, e: oe }
-			}
-		default:
-			throw new Error('not a valid instruction set')
+				if (max) {
+					if (count >= max) {
+						const { oc, ob, oe } = setState('em', _, _, _)
+						return { s: 'em', b: ob, e: oe, count: oc }
+					}
+					return { s: 'te', count }
+				}
+				if (count === pattern) {
+					const { oc, ob, oe } = setState('in', i, i, 0)
+					return { s: 'm', count: oc, b: ob, e: oe }
+				}
+			default:
+				throw new Error('not a valid instruction set')
 		}
 
 	}
 }
 
-function literalMatcher(literal, noCase) {
+export function createLiteralMatcher(literal, noCase) {
 
 	const isStr = typeof literal === 'string'
 	const len = isStr && literal.length
@@ -157,7 +162,7 @@ function literalMatcher(literal, noCase) {
 		//      return match, clean state
 		//    not last char?
 		//      return tentative
-		if (['in', /* add more */ ].includes(state)) {
+		if (['in', /* add more */].includes(state)) {
 			if (isMatch && !isPrevCC) {
 				setState('te', i, i, idx + 1)
 				if (len === idx) {
@@ -192,7 +197,3 @@ function literalMatcher(literal, noCase) {
 	}
 }
 
-module.exports = {
-	classMatcher,
-	literalMatcher
-}

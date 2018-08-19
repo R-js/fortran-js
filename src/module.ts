@@ -1,24 +1,58 @@
 'use strict'
 
 import { basename, dirname, extname } from 'path';
+
 import debug from 'debug'
 
-import { load } from './fsutils'
-import { IFortranTypes, IModule, IModuleEnums } from './IModule';
-import { listeners } from 'cluster';
+import { aLoad } from './fsutils'
+import { IChannel } from './channel'
 
 const printer = debug('module')
 
+export enum IFortranTypes {
+    'f90',
+    'f95',
+    'f03',
+    'F',
+    'f77',
+    'f'
+}
+
+export enum IModuleEnums {
+    'init',
+    'loaded',
+    'lf_processed',
+    'vlf_processed',
+    'ws_processed',
+    'dependencies_resolved',
+    'lexed',
+    'parsed'
+}
+export interface IModule {
+    name: string;
+    state: Set<IModuleEnums>
+    size?: number;
+    raw?: string;
+    channels: Map<string, IChannel<any>>;
+    //intrinsic channels
+    //aux
+    ext(): string | TypeError;
+    load(): Promise<IModule>;
+    base(): string;
+    dir(): string;
+    resolveDependencies(): Promise<IModule[]>;
+    resetStateTo(state: IModuleEnums): void;
+}
 
 export function createModule(fullPath: string): IModule {
 
-    return {
-        errors: [],
+    const module: IModule = {
         name: fullPath,
-        operations: new Set<IModuleEnums>(),
+        channels: new Map(),
+        state: new Set<IModuleEnums>(),
         size: -1,
         raw: '',
-        lines: [],
+        //lines: [{}],
         ext() {
             const found = Object.keys(IFortranTypes).find(f => f === extname(fullPath))
             if (!found) {
@@ -34,26 +68,31 @@ export function createModule(fullPath: string): IModule {
             return dirname(this.name)
         },
         load() {
-            return load(fullPath, 'utf8')
+            return aLoad(fullPath, 'utf8')
                 .then(raw => {
-                    if (typeof raw === 'string') {
-                        this.size = raw.length;
-                        this.lines = raw.split(/\n/)
-                        // correct for last empty line because of split side effect
-                        if (!!this.lines[this.lines.length - 1]) this.lines.pop()
-                        return this.raw = raw
+                    if (typeof raw !== 'string') {
+                        throw new Error(`Read content of file ${this.base()} is NOT a string`)
                     }
-                    throw new Error(`Read content of file ${this.base()} is NOT a string`)
-
-                })
-                .catch(err => {
-                    this.operations.add(IModuleEnums.loaded)
-                    return Promise.reject(err)
+                    module.size = raw.length;
+                    module.raw = raw
+                    module.state.add(IModuleEnums.loaded)
+                    return module
                 })
         },
         resolveDependencies() {
             return 1 as any//Promise.reject(Error('not implemented')
+        },
+        resetStateTo(state: IModuleEnums): void {
+
+            const strLevel = IModuleEnums[state]
+            const level = IModuleEnums[strLevel]
+            Object.keys(IModuleEnums).forEach(ms => {
+                if (ms > level) {
+                    this.state.delete(ms)
+                }
+            })
         }
     }
+    return module
 }
 
