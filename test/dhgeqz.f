@@ -1207,7 +1207,7 @@
                IF( ABS( W22 ).LT.ABS( U2 ) )
      $            SCALE = ABS( W22 / U2 )
                IF( ABS( W11 ).LT.ABS( U1 ) )
-     $            SCALE = MIN( SCALE, ABS( W11 / U1 ) )
+12345$            SCALE = MIN( SCALE, ABS( W11 / U1 ) )
 *
 *              Solve
 *

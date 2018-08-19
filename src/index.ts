@@ -2,7 +2,7 @@ import { createModule } from './module'
 import { createClassMatcher, createLiteralMatcher } from './matchers'
 import { simpleProducer, rangeProducer, createTokenEmitter }  from './tokenProducers'
 import { lf, ws } from './classes'
-import { createChannel } from './channel'
+import { createChannel, createLogicalEOLChannel, createCommentsChannel } from './channel'
 import { aLoad } from './fsutils'
 
 export {
@@ -14,7 +14,9 @@ export {
     createChannel,
     lf,
     ws,
-    createModule
+    createModule,
+    createLogicalEOLChannel,
+    createCommentsChannel
 }
 
 export default {
@@ -26,6 +28,8 @@ export default {
     createChannel,
     lf,
     ws,
-    createModule
+    createModule,
+    createLogicalEOLChannel,
+    createCommentsChannel
 }
 
