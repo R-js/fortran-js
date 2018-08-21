@@ -4,6 +4,7 @@ import { simpleProducer, rangeProducer, createTokenEmitter }  from './tokenProdu
 import { lf, ws } from './classes'
 import { createChannel, createLogicalEOLChannel, createCommentsChannel } from './channel'
 import { aLoad } from './fsutils'
+import { mergeSort, binarySearch } from './helpers'
 
 export {
     aLoad,  
@@ -16,7 +17,9 @@ export {
     ws,
     createModule,
     createLogicalEOLChannel,
-    createCommentsChannel
+    createCommentsChannel,
+    mergeSort,
+    binarySearch
 }
 
 export default {
@@ -30,6 +33,8 @@ export default {
     ws,
     createModule,
     createLogicalEOLChannel,
-    createCommentsChannel
+    createCommentsChannel,
+    mergeSort,
+    binarySearch
 }
 

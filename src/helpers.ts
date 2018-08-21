@@ -9,7 +9,7 @@ export const isContinue = function (c: string) {
 }
 
 // Split the array into halves and merge them recursively 
-export function mergeSort(sort =  (a, b) => a - b) {
+export function mergeSort(sort = (a, b) => a > b ? 1 : a < b ? -1 : 0) {
 
   function merge(left, right) {
     let result = []
@@ -61,28 +61,35 @@ function binary_search(A, n, T):
   // compare the arrays item by item and return the concatenated result
 */
 
-export function binarySearch<T> (list: T[], compare: (a:T,b:T) => number, value: T) {
-  // initial values for start, middle and end
-  let start = 0
-  let stop = list.length - 1
-  let middle = Math.floor((start + stop) / 2)
+export function binarySearch<T>(compare: (a: T, b: T) => (0 | 1 | -1)) {
 
-  // While the middle is not what we're looking for and the list does not have a single item
-  let comp = compare(list[middle], value)
-  while (comp !== 0 && start < stop) {
-    if (comp > 0) {
-      stop = middle - 1
-    } else {
-      start = middle + 1
-    }
-    // recalculate middle on every iteration
-    middle = Math.floor((start + stop) / 2)
-    comp = compare(list[middle], value)
+  return function useArr(list: T[], value: T) {
+    // initial values for start, middle and end
+    let start = 0
+    let stop = list.length - 1
+    do {
+      const middle = ( stop + start ) >> 1
+      const comp = compare(list[middle], value)
+      if (comp === 0) {
+        return { found: true, idx: middle } 
+      }
+      if (comp > 0 && middle === 0){
+        return { found: false, idx: middle}
+      }
+      if (comp < 0 && middle === list.length - 1){
+        return { found: false, idx: middle + 1}
+      }
+      if (stop === start){
+        return { found: false, idx: middle} 
+      } 
+      if (comp > 0) {
+        stop = middle - 1
+      } else {
+        start = middle + 1
+      }
+    } while(true)
+    
   }
-
-  // if the current middle item is what we're looking for return it's index, 
-  //    else return -middle (insertion position)
-  return comp === 0 ? middle : -middle
 }
 
 //const list = [2, 5, 8, 9, 13, 45, 67, 99]
