@@ -4,7 +4,7 @@ import { ISimpleToken, IRangeToken } from './IToken';
 import { IModule, IModuleEnums } from './module'
 import { IMatcher, IMatcherState } from './matchers'
 import { ITokenEmitter } from './tokenProducers'
-import { isComment, isContinue } from './helpers'
+import { isComment, isContinue, binarySearch, last } from './helpers'
 
 const printer = debug('IChannel')
 
@@ -87,13 +87,60 @@ export function createLogicalEOLChannel<T extends ISimpleToken>(ch: IChannel<T>)
 
 export function createCommentsChannel<T extends ISimpleToken>(ch: IChannel<T>): IChannel<T> {
 
-    if (ch !== ch.mod.channels.get('vlf') && ch !== ch.mod.channels.get('lf')) {
+    const vlf = ch.mod.channels.get('vlf')
+    const lf = ch.mod.channels.get('lf')
+    
+    if (ch !== vlf && ch !== lf) {
         throw new TypeError(`source "lf/vlf" channel is not registered with a module`)
     }
+    
     const comm: IChannel<T> = {
         mod: ch.mod,
         tokens: [], //vtokens
         name: 'comments',
+        process() {
+            const tokens = this.tokens = []
+            const lftok = ch.tokens.slice(0) //copy
+           
+            let prev = 0
+            const raw = ch.mod.raw
+            for (let i = 0; i < lftok.length; i++) {
+                const pos = lftok[i].f
+                const line = raw.slice(prev, pos)
+
+                if (isComment(line)) {
+                    tokens.push({ f: prev, t: pos })
+
+                }
+                prev = pos + 1
+            }
+            const lastf = last(lftok).f
+            if (lastf < raw.length-1){
+              const line = raw.slice(lastf)
+              if (isComment(line)){
+                  tokens.push({f:lastf+1,t:raw.length-1})
+              }
+            }
+        }
+    }
+    ch.mod.channels.set(comm.name, comm)
+    return comm
+}
+
+export function createSourceChannel<T extends ISimpleToken>(ch: IChannel<T>): IChannel<T> {
+
+    const vlf = ch.mod.channels.get('vlf')
+    const comms = ch.mod.channels.get('comments')
+    if (vlf !== ch){
+        throw new TypeError(`source "vlf" channel is not registered with a module`)
+    }
+    if (comms === undefined){
+        throw new TypeError(`source "comments" channel is not registered with a module`)
+    }
+    const source: IChannel<T> = {
+        mod: ch.mod,
+        tokens: [], //vtokens
+        name: 'source',
         process() {
             const tokens = this.tokens = []
             let prev = 0
@@ -110,6 +157,6 @@ export function createCommentsChannel<T extends ISimpleToken>(ch: IChannel<T>): 
             }
         }
     }
-    ch.mod.channels.set(comm.name, comm)
-    return comm
+    ch.mod.channels.set(source.name, source)
+    return source
 }

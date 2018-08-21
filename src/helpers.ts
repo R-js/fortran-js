@@ -92,6 +92,10 @@ export function binarySearch<T>(compare: (a: T, b: T) => (0 | 1 | -1)) {
   }
 }
 
+export function last<T>(arr: T[]): T {
+  return arr[arr.length-1]
+}
+
 //const list = [2, 5, 8, 9, 13, 45, 67, 99]
 ///console.log(binarySearch(list, 99)) // 7 -> returns the index of the item
 

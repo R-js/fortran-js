@@ -23,11 +23,15 @@ export enum IModuleEnums {
     'loaded',
     'lf_processed',
     'vlf_processed',
+    'comms_processed',
+    'source_extracted',
     'ws_processed',
     'dependencies_resolved',
     'lexed',
     'parsed'
 }
+
+
 export interface IModule {
     name: string;
     state: Set<IModuleEnums>
