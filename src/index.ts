@@ -2,7 +2,16 @@ import { createModule } from './module'
 import { createClassMatcher, createLiteralMatcher } from './matchers'
 import { simpleProducer, rangeProducer, createTokenEmitter }  from './tokenProducers'
 import { lf, ws } from './classes'
-import { createChannel, createLogicalEOLChannel, createCommentsChannel } from './channel'
+import { 
+    createChannel, 
+    createLogicalEOLChannel, 
+    createCommentsChannel,
+    createProcessor,
+    createWSChannel,
+    createSourceChannel,
+    
+
+} from './channel'
 import { aLoad } from './fsutils'
 import { mergeSort, binarySearch } from './helpers'
 
@@ -19,7 +28,10 @@ export {
     createLogicalEOLChannel,
     createCommentsChannel,
     mergeSort,
-    binarySearch
+    binarySearch,
+    createProcessor,
+    createWSChannel,
+    createSourceChannel
 }
 
 export default {
@@ -35,6 +47,9 @@ export default {
     createLogicalEOLChannel,
     createCommentsChannel,
     mergeSort,
-    binarySearch
+    binarySearch,
+    createProcessor,
+    createWSChannel,
+    createSourceChannel
 }
 

@@ -45,22 +45,6 @@ export function mergeSort(sort = (a, b) => a > b ? 1 : a < b ? -1 : 0) {
   }
 }
 
-/*
-function binary_search(A, n, T):
-    L := 0
-    R := n − 1
-    while L <= R:
-        m := floor((L + R) / 2)
-        if A[m] < T:
-            L := m + 1
-        else if A[m] > T:
-            R := m - 1
-        else:
-            return m
-    return unsuccessfu
-  // compare the arrays item by item and return the concatenated result
-*/
-
 export function binarySearch<T>(compare: (a: T, b: T) => (0 | 1 | -1)) {
 
   return function useArr(list: T[], value: T) {
@@ -95,11 +79,3 @@ export function binarySearch<T>(compare: (a: T, b: T) => (0 | 1 | -1)) {
 export function last<T>(arr: T[]): T {
   return arr[arr.length-1]
 }
-
-//const list = [2, 5, 8, 9, 13, 45, 67, 99]
-///console.log(binarySearch(list, 99)) // 7 -> returns the index of the item
-
-
-
-  //const list = [2, 5, 1, 3, 7, 2, 3, 8, 6, 3]
-  //console.log(mergeSort(list)) // [ 1, 2, 2, 3, 3, 3, 5, 6, 7, 8 ]

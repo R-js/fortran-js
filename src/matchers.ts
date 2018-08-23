@@ -31,7 +31,7 @@ export const createClassMatcher = (_class, pattern: string | number = 1) => {
 		return { oc, ob, oe, os }
 	}
 
-	return function check(c, i): Partial<IMatcherState> {
+	return function check(c, i): IMatcherState {
 		// if not found 
 		//    -> prev state 'em'? 
 		//          -> emit matched value
@@ -108,7 +108,7 @@ export const createClassMatcher = (_class, pattern: string | number = 1) => {
 						const { oc, ob, oe } = setState('em', _, _, _)
 						return { s: 'em', b: ob, e: oe, count: oc }
 					}
-					return { s: 'te', count }
+					return { s: 'te', count } as any
 				}
 				if (count === pattern) {
 					const { oc, ob, oe } = setState('in', i, i, 0)

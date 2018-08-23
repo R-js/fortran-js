@@ -18,14 +18,15 @@ const {
 
 const mod77 = f77.createModule(resolve('test/dhgeqz.f'))
 
-const lfMatcher = createClassMatcher(lf)
+
 const wsMatcher = createClassMatcher(ws, '>1')
-
-const lfEmitter = createTokenEmitter(simpleProducer, lfMatcher)
 const wsEmitter = createTokenEmitter(rangeProducer, wsMatcher)
-
-const lfChannel = createChannel('lf')(lfEmitter)(mod77)
 const wsChannel = createChannel('ws')(wsEmitter)(mod77)
+
+const lfMatcher = createClassMatcher(lf)
+const lfEmitter = createTokenEmitter(simpleProducer, lfMatcher)
+const lfChannel = createChannel('lf')(lfEmitter)(mod77)
+
 
 mod77.load().then(mod => {
     lfChannel.process()
