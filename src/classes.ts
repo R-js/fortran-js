@@ -1,5 +1,7 @@
 'use strict'
 
+export type TestFunc = (s:string) => RegExpMatchArray
+
 export function letter(c) {
 	return 'abcdefghijklmnopqrstuvwxyz'.includes(c) 
 }
@@ -29,5 +31,5 @@ export function cr(c) {
 }
 
 export function operators(c) {
-	return '<>)(*+-/.^'.includes(c) //
+	return '()*,=-+/'.includes(c) //
 }

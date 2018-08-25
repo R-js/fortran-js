@@ -52,30 +52,37 @@ export function binarySearch<T>(compare: (a: T, b: T) => (0 | 1 | -1)) {
     let start = 0
     let stop = list.length - 1
     do {
-      const middle = ( stop + start ) >> 1
+      const middle = (stop + start) >> 1
       const comp = compare(list[middle], value)
       if (comp === 0) {
-        return { found: true, idx: middle } 
+        return { found: true, idx: middle }
       }
-      if (comp > 0 && middle === 0){
-        return { found: false, idx: middle}
+      if (comp > 0 && middle === 0) {
+        return { found: false, idx: middle }
       }
-      if (comp < 0 && middle === list.length - 1){
-        return { found: false, idx: middle + 1}
+      if (comp < 0 && middle === list.length - 1) {
+        return { found: false, idx: middle + 1 }
       }
-      if (stop === start){
-        return { found: false, idx: middle} 
-      } 
+      if (stop === start) {
+        return { found: false, idx: middle }
+      }
       if (comp > 0) {
         stop = middle - 1
       } else {
         start = middle + 1
       }
-    } while(true)
-    
+    } while (true)
+
   }
 }
 
 export function last<T>(arr: T[]): T {
-  return arr[arr.length-1]
+  return arr[arr.length - 1]
 }
+
+export const propsExist = (...rest) => obj => {
+  if (!rest.length) return false
+  return !rest.find(propName => !Object.getOwnPropertyDescriptor(obj || {}, propName))
+}
+
+

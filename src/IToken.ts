@@ -1,12 +1,12 @@
 import { IModule, IModuleEnums } from './module';
-
+import { propsExist } from './helpers'
 export interface ISimpleToken {
     f: number;
 }
 export interface IRangeToken extends ISimpleToken {
     t: number;
 }
-export interface IToken extends IRangeToken {
+export interface INameToken extends IRangeToken {
     name: string; // name of token
 }
 
@@ -19,13 +19,23 @@ export interface ILines {
     vlines(): string[];
     vline(n: number): string;
 }
-export interface IWhiteSpaces {
-    _module: IModule; // reference, not a copy
-    _tokens: IToken[];
-    onLine(n: number): IToken[];
-    onvLine(n: number): IToken[];
-}
 
+export const isRangeToken = propsExist('f', 't')
+export const isSimpleToken = propsExist('f')
+
+export type IToken = ISimpleToken|IRangeToken
+
+export function sortTokenFAscTDesc(t1:IToken, t2:IToken){
+    if (t1.f > t2.f) return 1
+    if (t1.f < t2.f) return -1
+    if (isRangeToken(t1) && isRangeToken(t2)){
+        const t1t = <IRangeToken>t1
+        const t2t = <IRangeToken>t2
+        if (t1t < t2t) return 1
+        if (t1t > t2t) return -1
+    }
+    return 0
+}
 
 
 // stream (system)
@@ -43,13 +53,3 @@ export interface IWhiteSpaces {
 // -> comments 
 
 // channel is just a collection of IToken objects  
-
-export function processLines(module: IModule): void {
-    
-
-}
-
-
-export function createVirtualLines(lines: ILines): void {
-
-}

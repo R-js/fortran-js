@@ -8,7 +8,7 @@ import {
     createCommentsChannel,
     createProcessor,
     createWSChannel,
-    createSourceChannel,
+    createChannelExcluding,
     
 
 } from './channel'
@@ -31,7 +31,7 @@ export {
     binarySearch,
     createProcessor,
     createWSChannel,
-    createSourceChannel
+    createChannelExcluding
 }
 
 export default {
@@ -50,6 +50,6 @@ export default {
     binarySearch,
     createProcessor,
     createWSChannel,
-    createSourceChannel
+    createChannelExcluding
 }
 

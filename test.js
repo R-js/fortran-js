@@ -12,6 +12,8 @@ const {
     aLoad,
     createLogicalEOLChannel,
     createCommentsChannel,
+    createChannelExcluding,
+    createWSChannel,
     mergeSort,
     binarySearch
 } = f77
@@ -29,17 +31,22 @@ const lfChannel = createChannel('lf')(lfEmitter)(mod77)
 
 
 mod77.load().then(mod => {
+    const raw = mod.raw
     lfChannel.process()
     wsChannel.process()
     const vlfChannel = createLogicalEOLChannel(lfChannel)
     vlfChannel.process()
     const commChannel = createCommentsChannel(vlfChannel)
     commChannel.process()
+    const sourceChannel = createChannelExcluding('source', vlfChannel, commChannel);
+    sourceChannel.process()
+    const whiteSpaceChannel = createWSChannel(sourceChannel);
+    whiteSpaceChannel.process()
     //channel = mod.channels.get('lf')
-    commChannel.tokens.forEach((v, i, arr) => {
-        console.log(`${`${i}`.padStart(4, 0)}: ${commChannel.mod.raw.slice(v.f, v.t)}`)
+    sourceChannel.tokens.forEach((v, i, arr) => {
+        console.log(`${`${i}`.padStart(4, 0)}: ${raw.slice(v.f, v.t+1)}`)
     })
-
+/*
     const arr = [
         { a: -5, pl: 'hi' },
         { a: -10, pl: 'world' }
@@ -47,11 +54,9 @@ mod77.load().then(mod => {
 
     const fnSort = (a, b) => a.a - b.a
     const sorted = mergeSort(fnSort)(arr)
-
     const found = binarySearch(fnSort)(sorted, { a: -11 })
-
     console.log(JSON.stringify(sorted), found)
-
+*/
 })
 
 

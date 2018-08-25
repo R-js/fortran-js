@@ -1,12 +1,13 @@
 import * as debug from 'debug'
 
-import { ISimpleToken, IRangeToken } from './IToken';
+import { ISimpleToken, IRangeToken, sortTokenFAscTDesc, IToken, isRangeToken, isSimpleToken } from './IToken';
 import { IModule, IModuleEnums } from './module'
 import { IMatcher, IMatcherState, createClassMatcher } from './matchers'
 import { ITokenEmitter } from './tokenProducers'
-import { isComment, isContinue, binarySearch, last } from './helpers'
-import { ws } from './classes'
+import { isContinue, binarySearch, last, propsExist } from './helpers'
+import { ws, TestFunc } from './classes'
 import { createTokenEmitter, rangeProducer } from './tokenProducers'
+import { Stream } from 'stream';
 
 const printer = debug('IChannel')
 
@@ -21,8 +22,8 @@ export interface Snippet {
 }
 
 export interface Processed {
-    snippets: Snippet[];
-    tokens: IRangeToken[];
+    snippet: Snippet;
+    token: IRangeToken;
 }
 
 function compare(a: any, b: any): 0 | -1 | 1 {
@@ -40,6 +41,37 @@ function compare(a: any, b: any): 0 | -1 | 1 {
 const search = binarySearch(compare)
 const wsMatcher = createClassMatcher(ws, '>1')
 const wsEmitter = createTokenEmitter(rangeProducer, wsMatcher)
+
+
+const regexp = (s: RegExp) => line => line.match(s)
+const isComment = line => {
+
+    if ('*Cc'.includes(line[0])) {
+        const found: RegExpMatchArray = [line]
+        found.index = 0
+        found.input = line
+        return found
+    }
+    return null
+}
+
+const isNotComment = line => {
+    if (!isComment(line)) {
+        const found: RegExpMatchArray = [line]
+        found.index = 0
+        found.input = line
+        return found
+    }
+    return null
+}
+
+const chain = compose((a: Processed) => a.snippet)
+
+export const processLineContinuation = createProcessor(regexp(/\n\s{5}[^\s]/))
+export const processNonComments = createProcessor(isNotComment)
+export const processWS = createProcessor(regexp(/[\s\t]+/))
+export const processComments = createProcessor(isComment)
+
 
 
 export interface IChannel<T extends ISimpleToken> {
@@ -97,7 +129,7 @@ export function createLogicalEOLChannel<T extends ISimpleToken>(ch: IChannel<T>)
         tokens,
         name: 'vlf',
         process() {
-            tokens = []
+            tokens.splice(0)
             const lftok = ch.tokens.slice(0)
             const raw = ch.mod.raw
             let prev = 0
@@ -134,6 +166,9 @@ export function createCommentsChannel(ch: IChannel<ISimpleToken>): IChannel<IRan
     const _lf = vlf || lf
     const tokens: IRangeToken[] = []
     const raw = _lf.mod.raw
+
+    const pipeLine = chain(processComments)
+
     const comm: IChannel<IRangeToken> = {
         mod: ch.mod,
         tokens,
@@ -141,21 +176,8 @@ export function createCommentsChannel(ch: IChannel<ISimpleToken>): IChannel<IRan
         process() {
             tokens.splice(0)
             const lftok = _lf.tokens.slice(0) //copy
-            let prev = 0
-            for (let i = 0; i < lftok.length; i++) {
-                const pos = lftok[i].f
-                const line = raw.slice(prev, pos)
-                if (isComment(line)) {
-                    tokens.push({ f: prev, t: pos - 1 })
-                }
-                prev = pos + 1
-            }
-            const lastf = last(lftok).f
-            if (lastf < raw.length - 1) {
-                const line = raw.slice(lastf + 1)
-                if (isComment(line)) {
-                    tokens.push({ f: lastf + 1, t: raw.length - 1 })
-                }
+            for (const processed of pipeLine(createSnippetsUsingTokens(raw, lftok))) {
+                tokens.push(processed.token)
             }
         }
     }
@@ -163,113 +185,159 @@ export function createCommentsChannel(ch: IChannel<ISimpleToken>): IChannel<IRan
     return comm
 }
 
-export function createSourceChannel(ch: IChannel<ISimpleToken>): IChannel<IRangeToken> {
+export function createChannelExcluding(name: string, ...ch: IChannel<IToken>[]): IChannel<IRangeToken> {
 
-    const vlf = ch.mod.channels.get('vlf')
-    const comms = ch.mod.channels.get('comments') as IChannel<IRangeToken>
-    if (vlf !== ch) {
-        throw new TypeError(`source "vlf" channel is not registered with a module`)
+    if (ch.length === 0) {
+        throw new Error(`Illegal Arguments, no arguments given`)
     }
-    if (comms === undefined) {
-        throw new TypeError(`source "comments" channel is not registered with a module`)
+    const foundErrMod = ch.find(fch => fch.mod !== ch[0].mod)
+    if (foundErrMod) {
+        throw new Error(`Channels dont come from the same module`)
     }
+    // merge and sort  all the tokens from the channels
     const tokens: IRangeToken[] = []
-
-    const source: IChannel<IRangeToken> = {
-        mod: ch.mod,
-        tokens, //vtokens
-        name: 'source',
+    const raw = ch[0].mod.raw
+    const rc: IChannel<IRangeToken> = {
+        mod: ch[0].mod,
+        tokens,
+        name,
         process() {
-            tokens.splice(0) // delete in palce
-            const lftok = vlf.tokens.slice(0) //copy
-            const raw = vlf.mod.raw
+            const excludeTokens = ch.map(c => c.tokens).reduce((col, arr) => {
+                col.push(...arr)
+                return col
+            }, [])
+            excludeTokens.sort(sortTokenFAscTDesc)
+            tokens.splice(0)
             let prev = 0
-            const lastf = last(lftok).f
-            for (let i = 0; i < lftok.length; i++) {
-                const pos = lftok[i].f
-                const line = raw.slice(prev, pos)
-                if (!isComment(line)) {
-                    tokens.push({ f: prev, t: pos - 1 })
-                }
-                prev = pos + 1
+            if (excludeTokens.length === 0) {
+                tokens.push({ f: 0, t: raw.length - 1 })
+                return
             }
-            if (lastf < raw.length - 1) {
-                const line = raw.slice(lastf + 1)
-                if (!isComment(line)) {
-                    tokens.push({ f: lastf + 1, t: raw.length - 1 })
+            for (const token of excludeTokens) {
+                if (token.f <= prev) { // we skipped ahead temp
+                    prev = Math.max(token.f + 1, prev)
+                    if ((<IRangeToken>token).t) {
+                        prev = Math.max(prev, (<IRangeToken>token).t + 1)
+                    }
+                    continue
                 }
+                tokens.push({ f: prev, t: token.f - 1 })
+                prev = isRangeToken(token) ?
+                    (<IRangeToken>token).t + 1 :
+                    token.f + 1
+            }
+            const lastToken = last(excludeTokens)
+            if ((<IRangeToken>lastToken).t &&
+                (<IRangeToken>lastToken).t < raw.length - 1) {
+                tokens.push({ f: (<IRangeToken>lastToken).t + 1, t: raw.length - 1 })
+            }
+            else if (lastToken.f < raw.length - 1) {
+                tokens.push({ f: lastToken.f + 1, t: raw.length - 1 })
             }
         }
     }
-    ch.mod.channels.set(source.name, source)
-    return source
+    ch[0].mod.channels.set(name, rc)
+    return rc
 }
 
 export function createWSChannel(ch: IChannel<IRangeToken>): IChannel<IRangeToken> {
 
-    const vlf = ch.mod.channels.get('vlf') as IChannel<ISimpleToken>
     const source = ch.mod.channels.get('source') as IChannel<IRangeToken>
-    if (vlf !== ch) {
-        throw new TypeError(`source "vlf" channel is not registered with a module`)
-    }
     if (source === undefined) {
         throw new TypeError(`source "comments" channel is not registered with a module`)
     }
-    const raw = vlf.mod.raw
+    const raw = ch.mod.raw
+    const pipeLine = chain(processLineContinuation, processWS)
     const tokens: IRangeToken[] = []
-    const nonWSSource: Snippet[] = []
     const ws: IChannel<IRangeToken> = {
         mod: ch.mod,
-        tokens: [], //vtokens
+        tokens, //vtokens
         name: 'ws',
         process() {
             tokens.splice(0)
-            nonWSSource.splice(0)
-            const srctok = source.tokens.slice(0) //copy
-            for (let i = 0; i < srctok.length; i++) {
-                const { f, t } = srctok[i]
-                let snip = { line: raw.slice(f, t + 1), f, t }
-                // split out continueation lines
-                const { snippets, tokens: _tokens } = processLineContinuation(snip)
-                tokens.splice(0, 0, ..._tokens)
-                snippets.map(processWS).forEach(({ snippets: snips, tokens: toks }) => {
-                    tokens.splice(0, 0, ...toks)
-                    nonWSSource.splice(0, 0, ...snips)
-                })
-                // here the ws token need to be extracted from line
+            const tok = source.tokens.slice(0) //copy
+            for (const processed of pipeLine(createSnippetsUsingTokens(raw, tok))) {
+                tokens.push(processed.token)
             }
-            //sort ws tokens because there will be continue line stuff here!!
+            tokens.sort((t1, t2) => t1.f - t2.f)
         }
     }
-    ch.mod.channels.set(source.name, source)
-    return source
+    ch.mod.channels.set(ws.name, ws)
+    return ws
 }
 
-export function createProcessor(regex: RegExp) {
+export function createProcessor(matcher: TestFunc) {
 
-    return function process(s: Snippet): Processed {
+    return function* processor(s: Snippet): IterableIterator<Processed> {
         const { line, f, t } = s
-        const found = line.match(regex);
-        const rc = {
-            snippets: [s],
-            tokens: []
-        }
-
+        const found = matcher(line)
         if (found) {
             const first = line.slice(0, found.index)
             const second = line.slice(found.index + found[0].length)
-            rc.snippets[0] = { line: first, f, t: f + first.length - 1 }
-            rc.tokens[0] = { f: f + found.index, t: f + found.index + found[0].length - 1 }
+            yield {
+                snippet: { line: first, f, t: f + first.length - 1 },
+                token: { f: f + found.index, t: f + found.index + found[0].length - 1 }
+            }
             if (second) {
-                const rv = process({ line: second, f: f + found.index + found[0].length, t })
-                rc.tokens.splice(0, 0, ...rv.tokens)
-                rc.snippets.splice(0, 0, ...rv.snippets)
+                yield* processor({ line: second, f: f + found.index + found[0].length, t })
             }
         }
-        return rc
     }
 }
 
-export const processLineContinuation = createProcessor(/\n\s{5}[^\s]/)
-export const processWS = createProcessor(/[\s\t]+/)
+function* createSnippetsUsingTokens(raw: string, tokens: (ISimpleToken | IRangeToken)[]): IterableIterator<Snippet> {
+    if (!(raw || '').trim()) {
+        return
+    }
+    let prev = 0
 
+    for (const token of tokens) {
+        if (isRangeToken(token)) {// range token
+            const { f, t } = <IRangeToken>token
+            yield { line: raw.slice(f, t + 1), f, t }
+            prev = t + 1
+        }
+        else if (isSimpleToken(token)) {//simpletoken
+            const { f } = <ISimpleToken>token
+            yield { line: raw.slice(prev, f), f: prev, t: f - 1 }
+            prev = f + 1
+
+        }
+        else {
+            throw new Error(`token is not a SimpleToken or a RangeToken, i.e: [${JSON.stringify(token)}]`)
+        }
+    }
+    const lastToken = last(tokens)
+    if (
+        isSimpleToken(lastToken) //slicer token
+        || lastToken === undefined //source code has only one-liner?
+    ) {
+        const f = lastToken && lastToken.f || 0
+        if (raw.length - 1 > f) {
+            yield { line: raw.slice(f + 1, raw.length), f: f + 1, t: raw.length - 1 }
+        }
+    }
+}
+
+
+export function compose<T, K>(convert: (a: K) => T) {
+
+    return function chain(...transformers: ((s: T) => IterableIterator<K>)[]) {
+
+        function* stream(data: T, ...fns: ((s: T) => IterableIterator<K>)[]) {
+            const [fn, ...others] = fns
+            for (const elt of fn(data)) {
+                yield elt
+                if (others.length) {
+                    yield* stream(convert(elt), ...others)
+                }
+            }
+        }
+
+        return function* activate(gen: IterableIterator<T>): IterableIterator<K> {
+            for (const elt of gen) {
+                yield* stream(elt, ...transformers)
+            }
+        }
+    }
+}
