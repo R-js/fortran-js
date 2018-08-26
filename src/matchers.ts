@@ -1,7 +1,11 @@
 'use strict'
 
 export type TestFunc = (s: string) => RegExpMatchArray
-export const regexp = (s: RegExp) => line => line.match(s)
+export const regexp = (s: RegExp) => line => {
+	const found = line.match(s)
+	return found
+}
+
 export const isComment: TestFunc = (line) => {
 	const found = line.match(/^([\*Cc][^\n]*)\n?/)
 	if (found){

@@ -1,10 +1,10 @@
 
-import { 
+import {
     ISimpleToken,
     IRangeToken,
-    isRangeToken, 
-    isSimpleToken, 
-    Snippet 
+    isRangeToken,
+    isSimpleToken,
+    Snippet
 } from './IToken'
 
 import { regexp, TestFunc, isComment } from './matchers'
@@ -84,12 +84,25 @@ export function compose<T, K>(convert: (a: K) => T) {
 
         function* stream(data: T, ...fns: ((s: T) => IterableIterator<K>)[]) {
             const [fn, ...others] = fns
-            for (const elt of fn(data)) {
-                yield elt
-                if (others.length) {
-                    yield* stream(convert(elt), ...others)
+            const gen = fn(data)
+            let cnt = 0
+            let done
+            do {
+                const it = gen.next()
+                done = it.done
+                if (!done) {
+                    yield it.value
+                    if (others.length > 0) {
+                        yield* stream(convert(it.value), ...others)
+                    }
+                    cnt++
                 }
-            }
+                if (cnt === 0) {
+                    if (others.length > 0) {
+                        yield* stream(data, ...others)
+                    }
+                }
+            } while (!done)
         }
 
         return function* activate(gen: IterableIterator<T>): IterableIterator<K> {

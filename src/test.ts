@@ -10,6 +10,7 @@ const {
     processLineContinuation,
     processComments,
     processLf,
+    processWS,
     chain,
     // fundamental routines
     compose,
@@ -29,35 +30,40 @@ const mod77 = F77.createModule(fullPath)
 const lfChannel = createChannel('lf', tokenAsSimple)(chain(processLf))()
 const commentsChannel = createChannel('comms', tokenAsRange)(chain(processComments))
 
+
 export function init() {
 
     mod77.load().then(mod => {
         const raw = mod.raw
         const lfc = lfChannel(raw)
         lfc.process()
-        const commSprint = () => {
+
+        const eol = createLogicalEOLChannel(lfc, raw)
+        eol.process()
+
+        const commSpring = () => {
             return {
                 data:raw,
                 slicers: lfc.tokens
             } 
         }
-        const comc = commentsChannel(commSprint)(raw)
+        const comc = commentsChannel(commSpring)(raw)
         comc.process()
-        const 
+
+        const src = createChannelExcluding('source',raw, eol, comc)
+        src.process()
+
+        const wsSpring = () => {
+            return {
+                data: raw,
+                slicers: src.tokens
+            }
+        }
+        const ws = createChannel('ws', tokenAsRange)(chain(processLineContinuation, processWS))(wsSpring)(raw)
+        ws.process()
         
-        
-        //wsChannel.process()
-        //const vlfChannel = createLogicalEOLChannel(lfChannel)
-        //vlfChannel.process()
-        //const commChannel = createCommentsChannel(vlfChannel)
-        //commChannel.process()
-        //const sourceChannel = createChannelExcluding('source', vlfChannel, commChannel);
-        //sourceChannel.process()
-        //const whiteSpaceChannel = createWSChannel(sourceChannel);
-        //whiteSpaceChannel.process()
-        //channel = mod.channels.get('lf')
-        comc.tokens.forEach((v, i, arr) => {
-            console.log(`${`${i}`.padStart(4, '0')}: ${raw.slice(v.f, v.t + 1)}`)
+        ws.tokens.forEach((v, i, arr) => {
+            console.log(`${`${i}`.padStart(4, '0')}: ${raw.slice(v.f, v.t + 1)}<`)
         })
     })
 

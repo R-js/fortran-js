@@ -97,7 +97,7 @@ export function createLogicalEOLChannel(ch: IChannel<ISimpleToken>, raw:string):
     return vCh
 }
 
-export function createChannelExcluding(name: string, raw: string, ...ch: IChannel<IToken>[]): IChannel<IRangeToken> {
+export function createChannelExcluding(name: string, raw: string, ...ch: IChannel<any>[]): IChannel<IRangeToken> {
 
     if (ch.length === 0) {
         throw new Error(`Illegal Arguments, no arguments given`)
