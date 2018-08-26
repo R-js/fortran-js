@@ -1,13 +1,4 @@
 
-export const isString = s => typeof s === 'string'
-export const cc = '\u0020'
-export const _ = undefined
-
-export const isComment = c => '*cC'.includes(c[0])
-export const isContinue = function (c: string) {
-  return c.startsWith('    ') && c[5] !== ' '
-}
-
 // Split the array into halves and merge them recursively 
 export function mergeSort(sort = (a, b) => a > b ? 1 : a < b ? -1 : 0) {
 
@@ -84,5 +75,3 @@ export const propsExist = (...rest) => obj => {
   if (!rest.length) return false
   return !rest.find(propName => !Object.getOwnPropertyDescriptor(obj || {}, propName))
 }
-
-

@@ -10,25 +10,19 @@ export interface INameToken extends IRangeToken {
     name: string; // name of token
 }
 
-export interface ILines {
-    _module: IModule; // reference, not a copy
-    _EOLMarkers: ISimpleToken[];
-    _vEOLMarkers: ISimpleToken[];
-    lines(): string[];
-    line(n: number): string;
-    vlines(): string[];
-    vline(n: number): string;
+export interface Snippet extends IRangeToken {
+    line: string;
 }
 
 export const isRangeToken = propsExist('f', 't')
 export const isSimpleToken = propsExist('f')
 
-export type IToken = ISimpleToken|IRangeToken
+export type IToken = ISimpleToken & IRangeToken
 
-export function sortTokenFAscTDesc(t1:IToken, t2:IToken){
+export function sortTokenFAscTDesc<T>(t1: any, t2: any) {
     if (t1.f > t2.f) return 1
     if (t1.f < t2.f) return -1
-    if (isRangeToken(t1) && isRangeToken(t2)){
+    if (isRangeToken(t1) && isRangeToken(t2)) {
         const t1t = <IRangeToken>t1
         const t2t = <IRangeToken>t2
         if (t1t < t2t) return 1

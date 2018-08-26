@@ -1,4 +1,4 @@
-'use strict'
+/*'use strict'
 
 import { IMatcherState, IMatcher } from './matchers'
 import { ISimpleToken, IRangeToken } from './IToken';
@@ -44,3 +44,4 @@ export function createTokenEmitter<T extends ISimpleToken>
         }
     }
 }
+*/

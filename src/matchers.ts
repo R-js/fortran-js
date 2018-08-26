@@ -1,7 +1,20 @@
 'use strict'
 
-import { _, cc, isString } from './helpers'
+export type TestFunc = (s: string) => RegExpMatchArray
+export const regexp = (s: RegExp) => line => line.match(s)
+export const isComment: TestFunc = (line) => {
+	const found = line.match(/^([\*Cc][^\n]*)\n?/)
+	if (found){
+		const rc: RegExpMatchArray = [found[1]]
+		rc.input = found[1]
+		rc.index = 0
+		return rc
+	}
+	return null
+}
 
+
+/*
 type oldState = { oc: number, ob: number, oe: number, os: 'em' | 'm' | 'te' | 'in' }
 export type IMatcherState = { s: 'em' | 'm' | 'te' | 'in', b: number, e: number, count: number }
 export type IMatcher = (c: string, i: number) => IMatcherState
@@ -56,19 +69,7 @@ export const createClassMatcher = (_class, pattern: string | number = 1) => {
 		//             -> state = "em"
 		//             -> emit extended match 
 		// partial history
-		/*if (lookBack) {
-        	start = i - 1
-        	count = 1
-        	endI = i
-        	lookBack = false
-        	if (max && count < max) {
-        		state = 'te'
-        	}
-        	if (min && count < min) {
-        		state = 'em'
-        	}
-        }
-        */
+		
 		if (!_class(c)) {
 			const { ob, oc, os, oe } = setState('in', i, i, 0)
 			if (os === 'em') {
@@ -162,7 +163,7 @@ export function createLiteralMatcher(literal, noCase) {
 		//      return match, clean state
 		//    not last char?
 		//      return tentative
-		if (['in', /* add more */].includes(state)) {
+		if (['in',].includes(state)) {
 			if (isMatch && !isPrevCC) {
 				setState('te', i, i, idx + 1)
 				if (len === idx) {
@@ -196,4 +197,4 @@ export function createLiteralMatcher(literal, noCase) {
 		throw new Error(`Invalid state [${state}]`)
 	}
 }
-
+*/
